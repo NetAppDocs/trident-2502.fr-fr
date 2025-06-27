@@ -1,0 +1,257 @@
+---
+sidebar: sidebar 
+permalink: trident-get-started/kubernetes-deploy-helm-mirror.html 
+keywords: deploy, Trident, operator, helm, helm chart, configuration, values, offline, air gap, gap, registry 
+summary: 'Vous pouvez déployer l"opérateur Trident et installer Trident à l"aide de Helm. Ce processus s"applique aux installations où les images de conteneur requises par Trident sont stockées dans un registre privé.' 
+---
+= Déploiement de l'opérateur Trident à l'aide de Helm (mode hors ligne)
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Vous pouvez déployer l'opérateur Trident et installer Trident à l'aide de Helm. Ce processus s'applique aux installations où les images de conteneur requises par Trident sont stockées dans un registre privé. Si vous ne disposez pas d'un registre d'images privé, utilisez le link:kubernetes-deploy-helm.html["du déploiement standard"].
+
+
+
+== Informations critiques sur Trident 25.02
+
+*Vous devez lire les informations critiques suivantes sur Trident.*
+
+.<strong> informations sur le Trident </strong>
+[%collapsible%open]
+====
+[]
+=====
+* Kubernetes 1.32 est désormais pris en charge dans Trident. Mise à niveau de Trident avant la mise à niveau de Kubernetes.
+* Trident applique strictement l'utilisation de la configuration de chemins d'accès multiples dans les environnements SAN, avec une valeur recommandée de `find_multipaths: no` dans le fichier multipath.conf.
++
+L'utilisation d'une configuration sans chemins d'accès multiples ou l'utilisation d' `find_multipaths: yes`une valeur ou `find_multipaths: smart` dans un fichier multipath.conf entraînera des échecs de montage. Trident recommande l'utilisation de `find_multipaths: no` depuis la version 21.07.
+
+
+
+=====
+====
+
+
+== Déployez l'opérateur Trident et installez Trident à l'aide d'Helm
+
+A l'aide de Tridentlink:https://artifacthub.io/packages/helm/netapp-trident/trident-operator["Graphique Helm"^], vous pouvez déployer l'opérateur Trident et installer Trident en une seule étape.
+
+Vérifiez link:../trident-get-started/kubernetes-deploy.html["présentation de l'installation"]que vous avez rempli les conditions préalables à l'installation et sélectionné l'option d'installation correcte pour votre environnement.
+
+.Avant de commencer
+En plus de la link:../trident-get-started/kubernetes-deploy.html#before-you-deploy["conditions préalables au déploiement"]link:https://v3.helm.sh/["Version 3 de Helm"^], vous avez besoin .
+
+
+IMPORTANT: Lors de l'installation de Trident dans un référentiel privé, si vous utilisez le `imageRegistry` commutateur pour spécifier l'emplacement du référentiel, n'utilisez pas `/netapp/` dans le chemin du référentiel.
+
+.Étapes
+. Ajout du référentiel Trident Helm :
++
+[source, console]
+----
+helm repo add netapp-trident https://artifacthub.io/packages/helm/netapp-trident/trident-operator
+----
+. Utilisez `helm install` et spécifiez un nom pour votre déploiement et l'emplacement du registre d'images. Votre link:../trident-get-started/requirements.html#container-images-and-corresponding-kubernetes-versions["Images Trident et CSI"] peut être situé dans un registre ou dans des registres différents, mais toutes les images CSI doivent se trouver dans le même registre. Dans les exemples, `100.2502.0` est la version de Trident que vous installez.
++
+[role="tabbed-block"]
+====
+.Images dans un registre
+--
+[source, console]
+----
+helm install <name> netapp-trident/trident-operator --version 100.2502.0 --set imageRegistry=<your-registry> --create-namespace --namespace <trident-namespace> --set nodePrep={iscsi}
+----
+--
+.Images dans différents registres
+--
+[source, console]
+----
+helm install <name> netapp-trident/trident-operator --version 100.2502.0 --set imageRegistry=<your-registry> --set operatorImage=<your-registry>/trident-operator:25.02.0 --set tridentAutosupportImage=<your-registry>/trident-autosupport:25.02 --set tridentImage=<your-registry>/trident:25.02.0 --create-namespace --namespace <trident-namespace> --set nodePrep={iscsi}
+----
+--
+====
++
+
+NOTE: Si vous avez déjà créé un namespace pour Trident, le `--create-namespace` paramètre ne créera pas d'espace de noms supplémentaire.
+
+
+
+Vous pouvez utiliser `helm list` pour vérifier les détails de l'installation tels que le nom, l'espace de noms, le graphique, l'état, la version de l'application, et le numéro de révision.
+
+
+
+== Transmettre les données de configuration pendant l'installation
+
+Il existe deux façons de passer les données de configuration au cours de l'installation :
+
+[cols="2"]
+|===
+| Option | Description 
+
+
+| `--values` (ou `-f`)  a| 
+Spécifiez un fichier YAML avec les remplacements. Ceci peut être spécifié plusieurs fois et le fichier le plus à droite sera prioritaire.
+
+
+
+| `--set`  a| 
+Spécifiez les remplacements sur la ligne de commande.
+
+|===
+Par exemple, pour modifier la valeur par défaut de `debug`, exécutez la commande suivante où `100.2502.0` est la version de Trident que vous installez :
+
+[source, console]
+----
+helm install <name> netapp-trident/trident-operator --version 100.2502.0  --create-namespace --namespace trident --set tridentDebug=true
+----
+Pour ajouter la valeur nodePrep, exécutez la commande suivante :
+
+[source, console]
+----
+helm install <name> netapp-trident/trident-operator --version 100.2502.0  --create-namespace --namespace trident --set nodePrep={iscsi}
+----
+
+
+== Options de configuration
+
+Cette table et le `values.yaml` fichier, qui fait partie du graphique Helm, fournissent la liste des clés et leurs valeurs par défaut.
+
+
+WARNING: Ne supprimez pas l'affinité par défaut du fichier values.yaml. Lorsque vous souhaitez fournir une affinité personnalisée, étendez l'affinité par défaut.
+
+[cols="3"]
+|===
+| Option | Description | Valeur par défaut 
+
+
+| `nodeSelector` | Libellés des nœuds pour l'affectation des pods |  
+
+
+| `podAnnotations` | Annotations de pod |  
+
+
+| `deploymentAnnotations` | Annotations de déploiement |  
+
+
+| `tolerations` | Tolérances pour l'affectation de pod |  
+
+
+| `affinity` | Affinité pour l'affectation de pod  a| 
+[listing]
+----
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/arch
+              operator: In
+              values:
+              - arm64
+              - amd64
+            - key: kubernetes.io/os
+              operator: In
+              values:
+              - linux
+----
+
+WARNING: Ne supprimez pas l'affinité par défaut du fichier values.yaml. Lorsque vous souhaitez fournir une affinité personnalisée, étendez l'affinité par défaut.
+
+
+
+| `tridentControllerPluginNodeSelector` | Sélecteurs de nœuds supplémentaires pour les pods. Voir link:../trident-get-started/architecture.html#understanding-controller-pods-and-node-pods["Présentation des pods de contrôleur et des nœuds"] pour plus de détails. |  
+
+
+| `tridentControllerPluginTolerations` | Remplace les tolérances Kubernetes pour les pods. Voir link:../trident-get-started/architecture.html#understanding-controller-pods-and-node-pods["Présentation des pods de contrôleur et des nœuds"] pour plus de détails. |  
+
+
+| `tridentNodePluginNodeSelector` | Sélecteurs de nœuds supplémentaires pour les pods. Voir link:../trident-get-started/architecture.html#understanding-controller-pods-and-node-pods["Présentation des pods de contrôleur et des nœuds"] pour plus de détails. |  
+
+
+| `tridentNodePluginTolerations` | Remplace les tolérances Kubernetes pour les pods. Voir link:../trident-get-started/architecture.html#understanding-controller-pods-and-node-pods["Présentation des pods de contrôleur et des nœuds"] pour plus de détails. |  
+
+
+| `imageRegistry` | Identifie le registre pour les `trident-operator` images , `trident` et autres. Laissez vide pour accepter la valeur par défaut. IMPORTANT : lorsque vous installez Trident dans un référentiel privé, si vous utilisez le `imageRegistry` commutateur pour spécifier l'emplacement du référentiel, n'utilisez pas `/netapp/` dans le chemin du référentiel. | « » 
+
+
+| `imagePullPolicy` | Définit la stratégie d'extraction d'image pour le `trident-operator`. | `IfNotPresent` 
+
+
+| `imagePullSecrets` | Définit les secrets d'extraction d'image pour les `trident-operator`, `trident` et les autres images. |  
+
+
+| `kubeletDir` | Permet de remplacer l'emplacement hôte de l'état interne du kubelet. | `"/var/lib/kubelet"` 
+
+
+| `operatorLogLevel` | Permet de définir le niveau du journal de l'opérateur Trident sur : `trace`, `debug`, , `info` `warn` , , `error` ou `fatal`. | `"info"` 
+
+
+| `operatorDebug` | Permet de définir le niveau du journal de l'opérateur Trident sur DEBUG. | `true` 
+
+
+| `operatorImage` | Permet le remplacement complet de l'image pour `trident-operator`. | « » 
+
+
+| `operatorImageTag` | Permet de remplacer la balise de l' `trident-operator`image. | « » 
+
+
+| `tridentIPv6` | Permet d'activer Trident pour fonctionner dans des clusters IPv6. | `false` 
+
+
+| `tridentK8sTimeout` | Remplace le délai d'expiration par défaut de 30 secondes pour la plupart des opérations de l'API Kubernetes (s'il n'est pas égal à zéro, en secondes). | `0` 
+
+
+| `tridentHttpRequestTimeout` | Remplace le délai d'attente par défaut de 90 secondes pour les requêtes HTTP, avec `0s` une durée infinie pour le délai d'expiration. Les valeurs négatives ne sont pas autorisées. | `"90s"` 
+
+
+| `tridentSilenceAutosupport` | Permet de désactiver les rapports AutoSupport périodiques Trident. | `false` 
+
+
+| `tridentAutosupportImageTag` | Permet de remplacer la balise de l'image pour le conteneur Trident AutoSupport. | `<version>` 
+
+
+| `tridentAutosupportProxy` | Permet au conteneur Trident AutoSupport de téléphoner à domicile via un proxy HTTP. | « » 
+
+
+| `tridentLogFormat` | Définit le format de journalisation Trident (`text`ou `json`). | `"text"` 
+
+
+| `tridentDisableAuditLog` | Désactive l'enregistreur d'audit Trident. | `true` 
+
+
+| `tridentLogLevel` | Permet de définir le niveau de journal de Trident sur `trace` , `debug`, , `info`, `warn`, `error` ou `fatal`. | `"info"` 
+
+
+| `tridentDebug` | Permet de définir le niveau de journal de Trident sur `debug`. | `false` 
+
+
+| `tridentLogWorkflows` | Permet d'activer des flux de travail Trident spécifiques pour la consignation des traces ou la suppression des journaux. | « » 
+
+
+| `tridentLogLayers` | Permet d'activer des couches Trident spécifiques pour la consignation des tracés ou la suppression des journaux. | « » 
+
+
+| `tridentImage` | Permet le remplacement complet de l'image pour Trident. | « » 
+
+
+| `tridentImageTag` | Permet de remplacer la balise de l'image pour Trident. | « » 
+
+
+| `tridentProbePort` | Permet de remplacer le port par défaut utilisé pour les sondes de disponibilité/préparation Kubernetes. | « » 
+
+
+| `windows` | Permet d'installer Trident sur le nœud de travail Windows. | `false` 
+
+
+| `enableForceDetach` | Permet d'activer la fonction forcer le détachement. | `false` 
+
+
+| `excludePodSecurityPolicy` | Exclut la stratégie de sécurité du module opérateur de la création. | `false` 
+
+
+| `nodePrep` | Permet à Trident de préparer les nœuds du cluster Kubernetes à gérer les volumes à l'aide du protocole de stockage de données spécifié. *Actuellement, `iscsi` est la seule valeur prise en charge.* |  
+|===

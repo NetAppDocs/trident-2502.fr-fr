@@ -1,0 +1,132 @@
+---
+sidebar: sidebar 
+permalink: trident-use/trident-fsx.html 
+keywords: Amazon FSx for NetApp ONTAP, FSx for ONTAP, deploy Trident, integrate Trident, Trident 
+summary: 'Avec Trident avec Amazon FSX pour NetApp ONTAP, vous avez l"assurance que vos clusters Kubernetes s"exécutant dans Amazon Elastic Kubernetes Service (EKS) peuvent provisionner des volumes persistants de bloc et de fichier soutenus par ONTAP.' 
+---
+= Utilisez Trident avec Amazon FSX pour NetApp ONTAP
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+https://docs.aws.amazon.com/fsx/latest/ONTAPGuide/what-is-fsx-ontap.html["Amazon FSX pour NetApp ONTAP"^] Est un service AWS entièrement géré qui permet aux clients de lancer et d'exécuter des systèmes de fichiers optimisés par le système d'exploitation du stockage NetApp ONTAP. La solution FSX pour ONTAP vous permet d'exploiter les fonctionnalités, les performances et les capacités d'administration de NetApp que vous connaissez bien, tout en profitant de la simplicité, de l'agilité, de la sécurité et de l'évolutivité du stockage de données sur AWS. FSX pour ONTAP prend en charge les fonctionnalités du système de fichiers ONTAP et les API d'administration.
+
+Vous pouvez intégrer votre système de fichiers Amazon FSX pour NetApp ONTAP avec Trident pour vous assurer que les clusters Kubernetes s'exécutant dans Amazon Elastic Kubernetes Service (EKS) peuvent provisionner des volumes persistants de bloc et de fichier soutenus par ONTAP.
+
+Un système de fichiers est la ressource principale d'Amazon FSX, similaire à un cluster ONTAP sur site. Au sein de chaque SVM, vous pouvez créer un ou plusieurs volumes, qui sont des conteneurs de données qui stockent les fichiers et les dossiers dans votre système de fichiers. Avec Amazon FSX pour NetApp ONTAP sera fourni en tant que système de fichiers géré dans le cloud. Le nouveau type de système de fichiers est appelé *NetApp ONTAP*.
+
+Grâce à Trident avec Amazon FSX pour NetApp ONTAP, vous pouvez vous assurer que les clusters Kubernetes s'exécutant dans Amazon Elastic Kubernetes Service (EKS) peuvent provisionner des volumes persistants de bloc et de fichier soutenus par ONTAP.
+
+
+
+== De formation
+
+En plus de link:../trident-get-started/requirements.html["Configuration requise pour Trident"], pour intégrer FSX for ONTAP avec Trident, vous avez besoin de :
+
+* Un cluster Amazon EKS ou un cluster Kubernetes autogéré avec `kubectl` installé.
+* Système de fichiers Amazon FSX for NetApp ONTAP et machine virtuelle de stockage (SVM) accessibles depuis les nœuds workers de votre cluster.
+* Nœuds de travail préparés pour link:worker-node-prep.html["NFS ou iSCSI"].
++
+
+NOTE: Assurez-vous de suivre les étapes de préparation de nœud requises pour Amazon Linux et Ubuntu https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html["Images de machine Amazon"^] (amis) en fonction de votre type d'ami EKS.
+
+
+
+
+
+== Considérations
+
+* Volumes SMB :
++
+** Les volumes SMB sont pris en charge à l'aide du `ontap-nas` pilote uniquement.
+** Les volumes SMB ne sont pas pris en charge par le module d'extension Trident EKS.
+** Trident prend en charge les volumes SMB montés sur les pods s'exécutant sur les nœuds Windows uniquement. Voir link:../trident-use/trident-fsx-storage-backend.html#prepare-to-provision-smb-volumes["Préparez-vous au provisionnement des volumes SMB"] pour plus de détails.
+
+
+* Avant Trident 24.02, les volumes créés sur les systèmes de fichiers Amazon FSX pour lesquels les sauvegardes automatiques sont activées ne pouvaient pas être supprimés par Trident. Pour éviter ce problème dans Trident 24.02 ou version ultérieure, spécifiez `fsxFilesystemID` , AWS , AWS `apiRegion` `apikey` et AWS `secretKey` dans le fichier de configuration back-end pour AWS FSX pour ONTAP.
++
+
+NOTE: Si vous spécifiez un rôle IAM dans Trident, vous pouvez omettre de spécifier explicitement les `apiRegion` champs , `apiKey` et `secretKey` dans Trident. Pour plus d'informations, reportez-vous link:../trident-use/trident-fsx-examples.html["Exemples et options de configuration de FSX pour ONTAP"]à .
+
+
+
+
+
+== Authentification
+
+Trident propose deux modes d'authentification.
+
+* Basé sur les informations d'identification (recommandé) : stocke les informations d'identification de manière sécurisée dans AWS secrets Manager. Vous pouvez utiliser `fsxadmin` l'utilisateur pour votre système de fichiers ou l' `vsadmin` utilisateur configuré pour votre SVM.
++
+
+WARNING: Trident s'attend à être exécuté en tant qu' `vsadmin`utilisateur SVM ou en tant qu'utilisateur avec un nom différent qui a le même rôle. Amazon FSX pour NetApp ONTAP a un `fsxadmin` utilisateur qui remplace de façon limitée l'utilisateur du cluster ONTAP `admin`. Nous vous recommandons vivement d'utiliser `vsadmin` Trident.
+
+* Basé sur des certificats : Trident communiquera avec le SVM sur votre système de fichiers FSX à l'aide d'un certificat installé sur votre SVM.
+
+
+Pour plus d'informations sur l'activation de l'authentification, reportez-vous à la section authentification de votre type de pilote :
+
+* link:ontap-nas-prep.html["Authentification NAS de ONTAP"]
+* link:ontap-san-prep.html["Authentification SAN de ONTAP"]
+
+
+
+
+== Ami (Amazon machine Images) testé
+
+Le cluster EKS prend en charge plusieurs systèmes d'exploitation, mais AWS a optimisé certains ami (Amazon machine image) pour les conteneurs et EKS. Les amis suivants ont été testés avec Trident 24.10.
+
+|===
+
+
+| AMI | NAS | NAS-Economie | SAN | SAN-Economie 
+
+
+| AL2023_x86_64_STANDARD | Oui | Oui | Oui | Oui 
+
+
+| AL2_x86_64 | Oui | Oui | Oui** | Oui** 
+
+
+| BOTTLEROCKET_x86_64 | Oui* | Oui | S/O | S/O 
+
+
+| AL2023_ARM_64_STANDARD | Oui | Oui | Oui | Oui 
+
+
+| AL2_ARM_64 | Oui | Oui | Oui** | Oui** 
+
+
+| BOTTLEROCKET_ARM_64 | Oui* | Oui | S/O | S/O 
+|===
+* *Doit utiliser "nolock" dans les options de montage.
+* ** Impossible de supprimer le PV sans redémarrer le nœud
+
+
+
+NOTE: Si votre ami souhaité n'est pas répertorié ici, cela ne signifie pas qu'il n'est pas pris en charge ; cela signifie simplement qu'il n'a pas été testé. Cette liste sert de guide pour les amis connus pour fonctionner.
+
+*Tests effectués avec* :
+
+* Version EKS : 1.30
+* Méthode d'installation : Helm et en tant qu'add-on AWS
+* Pour NAS, NFS v3 et NFS v4.1 ont été testés.
+* Pour le SAN, iSCSI uniquement a été testé, pas NVMe-of.
+
+
+*Tests effectués* :
+
+* Créer : classe de stockage, pvc, pod
+* Suppression : pod, pvc (normal, qtree/lun – économique, NAS avec sauvegarde AWS)
+
+
+
+
+== Trouvez plus d'informations
+
+* https://docs.aws.amazon.com/fsx/latest/ONTAPGuide/what-is-fsx-ontap.html["Documentation Amazon FSX pour NetApp ONTAP"^]
+* https://www.netapp.com/blog/amazon-fsx-for-netapp-ontap/["Billet de blog sur Amazon FSX pour NetApp ONTAP"^]
+

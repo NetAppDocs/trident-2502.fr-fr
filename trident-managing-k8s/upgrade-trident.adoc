@@ -1,0 +1,85 @@
+---
+sidebar: sidebar 
+permalink: trident-managing-k8s/upgrade-trident.html 
+keywords: upgrade, trident, methods, operator, tridentctl, helm 
+summary: 'Trident suit un rythme de publication de quatre mois et publie trois versions majeures chaque année. Chaque nouvelle version s"appuie sur les versions précédentes, offrant de nouvelles fonctionnalités et améliorations des performances ainsi que des correctifs et des améliorations. Nous vous encourageons à effectuer une mise à niveau au moins une fois par an pour profiter des nouvelles fonctionnalités de Trident.' 
+---
+= Mettez à niveau Trident
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+À compter de la version 24.02, Trident suit une cadence de quatre mois pour publier trois versions majeures chaque année civile. Chaque nouvelle version exploite les versions précédentes et fournit de nouvelles fonctionnalités, des améliorations de performances, des correctifs et des améliorations. Nous vous encourageons à effectuer une mise à niveau au moins une fois par an pour profiter des nouvelles fonctionnalités de Trident.
+
+
+
+== Considérations avant la mise à niveau
+
+Lorsque vous effectuez une mise à niveau vers la dernière version de Trident, tenez compte des points suivants :
+
+* Il ne doit y avoir qu'une seule instance Trident installée sur tous les namespaces d'un cluster Kubernetes donné.
+* Trident 23.07 et versions ultérieures requièrent des instantanés de volume v1 et ne prend plus en charge les instantanés alpha ou bêta.
+* Si vous avez créé Cloud Volumes Service pour Google Cloud dans le link:../trident-use/gcp.html#learn-about-trident-support-for-cloud-volumes-service-for-google-cloud["Type de service CVS"], vous devez mettre à jour la configuration back-end pour utiliser le `standardsw` niveau de service ou `zoneredundantstandardsw` lors de la mise à niveau à partir de Trident 23.01. L'échec de la mise à jour du système `serviceLevel` dans le back-end peut entraîner l'échec des volumes. Voir link:../trident-use/gcp.html#cvs-service-type-examples["Exemples de type de service CVS"] pour plus de détails.
+* Lors de la mise à niveau, il est important que vous fournissez `parameter.fsType` dans `StorageClasses` utilisé par Trident. Vous pouvez supprimer et recréer des données `StorageClasses` sans interrompre les volumes préexistants.
++
+** Il s'agit d'une **exigence** pour l'application https://kubernetes.io/docs/tasks/configure-pod-container/security-context/["contextes de sécurité"^] pour les volumes SAN.
+** Le répertoire https://github.com/NetApp/Trident/Tree/master/Trident-installer/sample-input[sample input^] contient des exemples, tels que https://github.com/NetApp/Trident/blob/master/Trident-installer/sample-input/Storage-class-samples/Storage-class-Basic.yaml.templ ^] et link:https://github.com/NetApp/Trident/blob/master/Trident-input-default-class-samples-Storage-sample-than-class-than-default-[`storage-class-bronze-default.yaml`class[`storage-class-basic.yaml.templ` ^.
+** Pour plus d'informations, reportez-vous link:../trident-rn.html["Problèmes connus"]à .
+
+
+
+
+
+
+== Étape 1 : sélectionnez une version
+
+Les versions Trident suivent une convention de dénomination basée sur la date `YY.MM`, où « YY » correspond aux deux derniers chiffres de l'année et « MM » au mois. Les versions de points suivent une `YY.MM.X` convention, où « X » est le niveau de patch. Vous allez sélectionner la version à mettre à niveau en fonction de la version à partir de laquelle vous effectuez la mise à niveau.
+
+* Vous pouvez effectuer une mise à niveau directe vers n'importe quelle version cible située dans une fenêtre à quatre versions de la version installée. Par exemple, vous pouvez directement mettre à niveau la version 24.06 (ou toute version 24.06) vers la version 25.02.
+* Si vous effectuez une mise à niveau à partir d'une version en dehors de la fenêtre à quatre versions, effectuez une mise à niveau en plusieurs étapes. Suivez les instructions de mise à link:../earlier-versions.html["version antérieure"] niveau de pour effectuer la mise à niveau vers la version la plus récente qui s'adapte à la fenêtre à quatre versions. Par exemple, si vous exécutez 23.01 et que vous souhaitez effectuer une mise à niveau vers 25.02 :
++
+.. Première mise à niveau de 23.01 à 24.02.
+.. Puis passez de 24.02 à 25.02.
+
+
+
+
+
+NOTE: Lorsque vous effectuez une mise à niveau avec l'opérateur Trident sur OpenShift Container Platform, vous devez effectuer une mise à niveau vers Trident 21.01.1 ou une version ultérieure. L'opérateur Trident sorti avec 21.01.0 contient un problème connu qui a été résolu en 21.01.1. Pour plus de détails, reportez-vous au https://github.com/NetApp/trident/issues/517["Consultez le document GitHub pour plus d'informations"^].
+
+
+
+== Étape 2 : déterminer la méthode d'installation d'origine
+
+Pour déterminer la version que vous avez utilisée pour installer Trident à l'origine :
+
+. Utilisez `kubectl get pods -n trident` pour examiner les modules.
++
+** S'il n'y a pas de module opérateur, Trident a été installé à l'aide de `tridentctl`.
+** S'il existe un module opérateur, Trident a été installé à l'aide de l'opérateur Trident soit manuellement, soit à l'aide de l'assistant.
+
+
+. S'il y a un module opérateur, utilisez `kubectl describe torc` pour déterminer si Trident a été installé à l'aide de l'assistant.
++
+** S'il y a une étiquette Helm, Trident a été installé à l'aide de Helm.
+** S'il n'y a pas d'étiquette Helm, Trident a été installé manuellement à l'aide de l'opérateur Trident.
+
+
+
+
+
+
+== Étape 3 : sélectionnez une méthode de mise à niveau
+
+En général, vous devez link:../trident-get-started/kubernetes-deploy.html#moving-between-installation-methods["passer d'une méthode d'installation à l'autre"]effectuer une mise à niveau en utilisant la même méthode que celle utilisée pour l'installation initiale, mais vous pouvez . Il existe deux options pour mettre à niveau Trident.
+
+* link:upgrade-operator.html["Mise à niveau à l'aide de l'opérateur Trident"]
++
+
+TIP: Nous vous conseillons de passer en revue link:upgrade-operator-overview.html["Comprendre le workflow de mise à niveau de l'opérateur"] avant de procéder à la mise à niveau avec l'opérateur.
+
+* 
+

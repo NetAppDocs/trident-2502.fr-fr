@@ -1,0 +1,66 @@
+---
+sidebar: sidebar 
+permalink: trident-reference/rest-api.html 
+keywords: rest api, get, post, json, object, backends 
+summary: 'Vous pouvez utiliser le terminal REST directement si vous préférez interagir avec l"API REST de Trident.' 
+---
+= API REST Trident
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Sont le moyen le plus simple d'interagir avec l'API REST Trident, mais link:tridentctl.html["commandes et options tridentctl"]vous pouvez utiliser le terminal REST directement si vous préférez.
+
+
+
+== Quand utiliser l'API REST
+
+L'API REST est utile pour les installations avancées qui utilisent Trident en tant que fichier binaire autonome dans les déploiements non Kubernetes.
+
+Pour une meilleure sécurité, Trident `REST API` est limité par défaut à localhost lors de l'exécution dans un pod. Pour modifier ce comportement, vous devez définir l'argument de Trident `-address` dans sa configuration de pod.
+
+
+
+== Avec l'API REST
+
+Pour des exemples de la façon dont ces API sont appelées, passez (`-d`l'indicateur debug ). Pour plus d'informations, reportez-vous link:../trident-managing-k8s/tridentctl.html["Gérez Trident à l'aide de tridentctl"]à .
+
+L'API fonctionne comme suit :
+
+
+
+=== OBTENEZ
+
+`GET <trident-address>/trident/v1/<object-type>`:: Répertorie tous les objets de ce type.
+`GET <trident-address>/trident/v1/<object-type>/<object-name>`:: Obtient les détails de l'objet nommé.
+
+
+
+
+=== POST
+
+`POST <trident-address>/trident/v1/<object-type>`:: Crée un objet du type spécifié.
++
+--
+* Nécessite une configuration JSON pour que l'objet soit créé. Pour la spécification de chaque type d'objet, reportez-vous link:../trident-managing-k8s/tridentctl.html["Gérez Trident à l'aide de tridentctl"]à la .
+* Si l'objet existe déjà, le comportement varie : les systèmes back-end mettent à jour l'objet existant, tandis que tous les autres types d'objet échoueront.
+
+
+--
+
+
+
+
+=== SUPPRIMER
+
+`DELETE <trident-address>/trident/v1/<object-type>/<object-name>`:: Supprime la ressource nommée.
++
+--
+
+NOTE: Les volumes associés aux systèmes back-end ou aux classes de stockage continueront d'exister. Ils doivent être supprimés séparément. Pour plus d'informations, reportez-vous link:../trident-managing-k8s/tridentctl.html["Gérez Trident à l'aide de tridentctl"]à .
+
+--
+
