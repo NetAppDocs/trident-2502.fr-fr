@@ -4625,7 +4625,6 @@
   <block id="b414f77491b337ef4f2181d2e6a210b3" category="cell">"FALSE" *si spécifié, définissez sur<block ref="b326b5062b2f0e69046810717534cb09" prefix=" " category="inline-code"></block> pour ASA r2*.</block>
   <block id="b8ae61dc50cf8e8b79e68bc4a8d36393" category="cell"><block ref="0f179ba2bc32ab5d8f60692f5b800c86" prefix="" category="inline-code"></block></block>
   <block id="a56dcba8eacdac67fb510e1434d560d8" category="inline-link-macro">Utiliser la configuration de clé unifiée Linux (LUKS)</block>
-  <block id="e29a6d196232b6cdf3ae52f871ba291b" category="cell">Activez le cryptage LUKS. Reportez-vous à la <block ref="569f9f91cdcc19909b8acbf6f423daf7" category="inline-link-macro-rx"></block>. Le cryptage LUKS n'est pas pris en charge pour NVMe/TCP.</block>
   <block id="f50abf25c5eef34d11b26eb12f993fca" category="cell">« » Défini sur<block ref="68934a3e9455fa72420237eb05902327" prefix=" " category="inline-code"></block> pour ASA r2.</block>
   <block id="00f7c04dee401ca096a84ce3ce7cb61d" category="cell">Stratégie de hiérarchisation pour utiliser "none" *ne spécifiez pas pour ASA r2*.</block>
   <block id="e78c177a9e5dfcf995756c1f03c48529" category="admonition">Pour tous les volumes créés à l'aide du<block ref="73a3350a1b91aeb6e2836fdf5975672c" prefix=" " category="inline-code"></block> pilote, Trident ajoute 10 % de capacité supplémentaire au FlexVol pour prendre en charge les métadonnées des LUN. La LUN sera provisionnée avec la taille exacte que l'utilisateur demande dans la demande de volume persistant. Trident ajoute 10 % au FlexVol (s'affiche en tant que taille disponible dans ONTAP). Les utilisateurs obtiennent à présent la capacité utilisable requise. Cette modification empêche également que les LUN ne soient en lecture seule, à moins que l'espace disponible soit pleinement utilisé. Cela ne s'applique pas à l'économie d'ontap-san.</block>
@@ -5498,4 +5497,5 @@
   <block id="e8ce47501426b8525633fc30daf17d7a" category="sidebar">Personnaliser les noms des volumes</block>
   <block id="f18a50f02f48551895d57b81dd288142" category="sidebar">Partage des volumes NFS entre les espaces de noms</block>
   <block id="62486fa65fc31c383ace8989549632ad" category="sidebar">Utiliser des instantanés</block>
+  <block id="b71ccf1062cee8c376a7eb37e3c42603" category="cell">Activez le cryptage LUKS. Reportez-vous à la <block ref="569f9f91cdcc19909b8acbf6f423daf7" category="inline-link-macro-rx"></block>.</block>
 </blocks>
