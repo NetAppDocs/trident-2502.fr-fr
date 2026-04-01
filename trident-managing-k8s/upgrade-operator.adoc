@@ -21,7 +21,7 @@ Vous pouvez mettre à niveau Trident à l'aide de l'opérateur Trident manuellem
 Vous pouvez effectuer une mise à niveau d'une installation d'opérateur Trident dont le périmètre est défini dans le cluster vers une autre installation d'opérateur Trident dont le périmètre est défini dans le cluster. Toutes les versions de Trident 21.01 et supérieures utilisent un opérateur cluster-scoped.
 
 
-NOTE: Pour mettre à niveau à partir de Trident qui a été installé à l'aide de l'opérateur Namespace-scoped (versions 20.07 à 20.10), utilisez les instructions de mise à niveau pour link:../earlier-versions.html["votre version installée"] de Trident.
+NOTE: Pour mettre à niveau Trident installé à l'aide de l'opérateur à portée d'espace de noms (versions 20.07 à 20.10), utilisez les instructions de mise à niveau pour votre version installée de Trident.
 
 .Description de la tâche
 Trident fournit un fichier bundle que vous pouvez utiliser pour installer l'opérateur et créer les objets associés pour votre version Kubernetes.
